@@ -11,6 +11,14 @@ public class PlayerController : MonoBehaviour
     public float costoEstaminaSalto = 5f;
     public float distanciaChequeoPiso = 1.1f;
 
+    [Header("Disparo")]
+    public float rangoDisparo = 20f;
+    public float danoDisparo = 25f;
+    public float cadenciaDisparo = 1.5f;
+    public int balasActuales = 10;
+
+    private float tiempoUltimoDisparo = -999f;
+
     [Header("Vida")]
     public float vidaMaxima = 100f;
     public float vidaActual;
@@ -29,6 +37,11 @@ public class PlayerController : MonoBehaviour
     private Rigidbody rb;
     private float rotacionVertical = 0f;
 
+    public void AgregarBalas(int cantidad)
+    {
+        balasActuales += cantidad;
+    }
+
     void Start()
     {
         rb = GetComponent<Rigidbody>();
@@ -46,7 +59,9 @@ public class PlayerController : MonoBehaviour
         ManejarFOV();
         ManejarEstamina();
         ManejarSalto();
+        ManejarDisparo();
     }
+
 
     void FixedUpdate()
     {
@@ -114,6 +129,26 @@ public class PlayerController : MonoBehaviour
         }
     }
 
+    void ManejarDisparo()
+    {
+        if (Input.GetButtonDown("Fire1") && Time.time >= tiempoUltimoDisparo + cadenciaDisparo && balasActuales > 0)
+        {
+            tiempoUltimoDisparo = Time.time;
+            balasActuales--;
+
+            Ray rayo = new Ray(camaraJugador.transform.position, camaraJugador.transform.forward);
+            RaycastHit impacto;
+
+            if (Physics.Raycast(rayo, out impacto, rangoDisparo))
+            {
+                EnemigoController enemigo = impacto.collider.GetComponent<EnemigoController>();
+                if (enemigo != null)
+                {
+                    enemigo.RecibirDano(danoDisparo);
+                }
+            }
+        }
+    }
     public void RecibirDano(float cantidad)
     {
         vidaActual -= cantidad;
